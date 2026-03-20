@@ -1,4 +1,4 @@
-import { products, categories } from "@/data/products";
+import { products, categories } from "../data/products";
 
 export default function ProductGrid() {
   return (
