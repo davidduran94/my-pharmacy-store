@@ -24,7 +24,7 @@ export default function HomePage() {
             Controla tu Diabetes con Confianza
           </h1>
           <p className="text-lg md:text-xl text-emerald-700 max-w-2xl mx-auto mb-8">
-            Tu tienda especializada en productos para el control de la diabetes. 
+            Tu tienda especializada en productos para el control de la diabetes.
             Monitores de glucosa, insulina, tirillas reactivas y más.
           </p>
         </div>

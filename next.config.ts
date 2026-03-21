@@ -12,6 +12,14 @@ export default {
         hostname: "cdn.shopify.com",
         pathname: "/s/files/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.farmaciasanpablo.com.mx",
+      },
+      {
+        protocol: "https",
+        hostname: "www.fahorro.com",
+      },
     ],
   },
 };

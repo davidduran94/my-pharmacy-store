@@ -141,7 +141,7 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
 };
 
 const reshapeCollection = (
-  collection: ShopifyCollection
+  collection: ShopifyCollection,
 ): Collection | undefined => {
   if (!collection) {
     return undefined;
@@ -183,7 +183,7 @@ const reshapeImages = (images: Connection<Image>, productTitle: string) => {
 
 const reshapeProduct = (
   product: ShopifyProduct,
-  filterHiddenProducts: boolean = true
+  filterHiddenProducts: boolean = true,
 ) => {
   if (
     !product ||
@@ -217,54 +217,145 @@ const reshapeProducts = (products: ShopifyProduct[]) => {
   return reshapedProducts;
 };
 
-export async function createCart(): Promise<Cart> {
-  const res = await shopifyFetch<ShopifyCreateCartOperation>({
-    query: createCartMutation,
-  });
+import { products as localProducts } from "data/products";
 
-  return reshapeCart(res.body.data.cartCreate.cart);
+function getLocalCartFromCookies(): Cart {
+  let cart: Cart = {
+    id: "local-cart",
+    checkoutUrl: "/checkout",
+    cost: {
+      subtotalAmount: { amount: "0.0", currencyCode: "MXN" },
+      totalAmount: { amount: "0.0", currencyCode: "MXN" },
+      totalTaxAmount: { amount: "0.0", currencyCode: "MXN" },
+    },
+    lines: [],
+    totalQuantity: 0,
+  };
+  return cart;
+}
+
+export async function createCart(): Promise<Cart> {
+  return getLocalCartFromCookies();
 }
 
 export async function addToCart(
-  lines: { merchandiseId: string; quantity: number }[]
+  lines: { merchandiseId: string; quantity: number }[],
 ): Promise<Cart> {
-  const cartId = (await cookies()).get("cartId")?.value!;
-  const res = await shopifyFetch<ShopifyAddToCartOperation>({
-    query: addToCartMutation,
-    variables: {
-      cartId,
-      lines,
-    },
-  });
-  return reshapeCart(res.body.data.cartLinesAdd.cart);
+  let cartCookieStr = (await cookies()).get("localCart")?.value;
+  let cart = cartCookieStr
+    ? (JSON.parse(cartCookieStr) as Cart)
+    : getLocalCartFromCookies();
+
+  for (const line of lines) {
+    const existingLine = cart.lines.find(
+      (l) => l.merchandise.id === line.merchandiseId,
+    );
+    if (existingLine) {
+      existingLine.quantity += line.quantity;
+      const product = localProducts.find((p) => p.id === line.merchandiseId);
+      if (product) {
+        existingLine.cost.totalAmount.amount = (
+          product.price * existingLine.quantity
+        ).toString();
+      }
+    } else {
+      const product = localProducts.find((p) => p.id === line.merchandiseId);
+      if (product) {
+        cart.lines.push({
+          id: product.id, // line id
+          quantity: line.quantity,
+          cost: {
+            totalAmount: {
+              amount: (product.price * line.quantity).toString(),
+              currencyCode: "MXN",
+            },
+          },
+          merchandise: {
+            id: product.id,
+            title: "Default Title",
+            selectedOptions: [{ name: "Title", value: "Default Title" }],
+            product: {
+              id: product.id,
+              handle: product.id,
+              title: product.title,
+              featuredImage: {
+                url: product.image,
+                altText: product.title,
+                width: 500,
+                height: 500,
+              },
+            },
+          },
+        });
+      }
+    }
+  }
+
+  cart.totalQuantity = cart.lines.reduce((acc, line) => acc + line.quantity, 0);
+  const totalCost = cart.lines.reduce(
+    (acc, line) => acc + Number(line.cost.totalAmount.amount),
+    0,
+  );
+  cart.cost.subtotalAmount.amount = totalCost.toString();
+  cart.cost.totalAmount.amount = totalCost.toString();
+
+  (await cookies()).set("localCart", JSON.stringify(cart));
+  return cart;
 }
 
 export async function removeFromCart(lineIds: string[]): Promise<Cart> {
-  const cartId = (await cookies()).get("cartId")?.value!;
-  const res = await shopifyFetch<ShopifyRemoveFromCartOperation>({
-    query: removeFromCartMutation,
-    variables: {
-      cartId,
-      lineIds,
-    },
-  });
+  let cartCookieStr = (await cookies()).get("localCart")?.value;
+  let cart = cartCookieStr
+    ? (JSON.parse(cartCookieStr) as Cart)
+    : getLocalCartFromCookies();
 
-  return reshapeCart(res.body.data.cartLinesRemove.cart);
+  cart.lines = cart.lines.filter((line) => !lineIds.includes(line.id!));
+
+  cart.totalQuantity = cart.lines.reduce((acc, line) => acc + line.quantity, 0);
+  const totalCost = cart.lines.reduce(
+    (acc, line) => acc + Number(line.cost.totalAmount.amount),
+    0,
+  );
+  cart.cost.subtotalAmount.amount = totalCost.toString();
+  cart.cost.totalAmount.amount = totalCost.toString();
+
+  (await cookies()).set("localCart", JSON.stringify(cart));
+  return cart;
 }
 
 export async function updateCart(
-  lines: { id: string; merchandiseId: string; quantity: number }[]
+  lines: { id: string; merchandiseId: string; quantity: number }[],
 ): Promise<Cart> {
-  const cartId = (await cookies()).get("cartId")?.value!;
-  const res = await shopifyFetch<ShopifyUpdateCartOperation>({
-    query: editCartItemsMutation,
-    variables: {
-      cartId,
-      lines,
-    },
-  });
+  let cartCookieStr = (await cookies()).get("localCart")?.value;
+  let cart = cartCookieStr
+    ? (JSON.parse(cartCookieStr) as Cart)
+    : getLocalCartFromCookies();
 
-  return reshapeCart(res.body.data.cartLinesUpdate.cart);
+  for (const line of lines) {
+    const existingLine = cart.lines.find((l) => l.id === line.id);
+    if (existingLine) {
+      existingLine.quantity = line.quantity;
+      const product = localProducts.find(
+        (p) => p.id === existingLine.merchandise.id,
+      );
+      if (product) {
+        existingLine.cost.totalAmount.amount = (
+          product.price * line.quantity
+        ).toString();
+      }
+    }
+  }
+
+  cart.totalQuantity = cart.lines.reduce((acc, line) => acc + line.quantity, 0);
+  const totalCost = cart.lines.reduce(
+    (acc, line) => acc + Number(line.cost.totalAmount.amount),
+    0,
+  );
+  cart.cost.subtotalAmount.amount = totalCost.toString();
+  cart.cost.totalAmount.amount = totalCost.toString();
+
+  (await cookies()).set("localCart", JSON.stringify(cart));
+  return cart;
 }
 
 export async function getCart(): Promise<Cart | undefined> {
@@ -272,27 +363,15 @@ export async function getCart(): Promise<Cart | undefined> {
   cacheTag(TAGS.cart);
   cacheLife("seconds");
 
-  const cartId = (await cookies()).get("cartId")?.value;
-
-  if (!cartId) {
+  let cartCookieStr = (await cookies()).get("localCart")?.value;
+  if (!cartCookieStr) {
     return undefined;
   }
-
-  const res = await shopifyFetch<ShopifyCartOperation>({
-    query: getCartQuery,
-    variables: { cartId },
-  });
-
-  // Old carts becomes `null` when you checkout.
-  if (!res.body.data.cart) {
-    return undefined;
-  }
-
-  return reshapeCart(res.body.data.cart);
+  return JSON.parse(cartCookieStr) as Cart;
 }
 
 export async function getCollection(
-  handle: string
+  handle: string,
 ): Promise<Collection | undefined> {
   "use cache";
   cacheTag(TAGS.collections);
@@ -323,7 +402,7 @@ export async function getCollectionProducts({
 
   if (!endpoint) {
     console.log(
-      `Skipping getCollectionProducts for '${collection}' - Shopify not configured`
+      `Skipping getCollectionProducts for '${collection}' - Shopify not configured`,
     );
     return [];
   }
@@ -343,7 +422,7 @@ export async function getCollectionProducts({
   }
 
   return reshapeProducts(
-    removeEdgesAndNodes(res.body.data.collection.products)
+    removeEdgesAndNodes(res.body.data.collection.products),
   );
 }
 
@@ -388,7 +467,7 @@ export async function getCollections(): Promise<Collection[]> {
     // Filter out the `hidden` collections.
     // Collections that start with `hidden-*` need to be hidden on the search page.
     ...reshapeCollections(shopifyCollections).filter(
-      (collection) => !collection.handle.startsWith("hidden")
+      (collection) => !collection.handle.startsWith("hidden"),
     ),
   ];
 
@@ -461,7 +540,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
 }
 
 export async function getProductRecommendations(
-  productId: string
+  productId: string,
 ): Promise<Product[]> {
   "use cache";
   cacheTag(TAGS.products);

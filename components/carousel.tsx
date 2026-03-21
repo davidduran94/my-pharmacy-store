@@ -4,31 +4,31 @@ import { GridTileImage } from "./grid/tile";
 const carouselProducts = [
   {
     title: "Monitor de Glucosa",
-    price: 899.00,
+    price: 899.0,
     image: "/images/monitor-glucosa.jpg",
     description: "Control preciso de tu diabetes",
   },
   {
     title: "Insulina Humalog",
-    price: 249.00,
+    price: 249.0,
     image: "/images/insulina.jpg",
     description: "Insulina rápida de acción",
   },
   {
     title: "Tirillas Diastech",
-    price: 450.00,
+    price: 450.0,
     image: "/images/tirillas.jpg",
     description: "100 tirillas reactivas herméticas",
   },
   {
     title: "Pluma de Insulina",
-    price: 680.00,
+    price: 680.0,
     image: "/images/pluma-insulina.jpg",
     description: "Dosis ajustable y fácil de usar",
   },
   {
     title: "Brazalete GlucoKing",
-    price: 1299.00,
+    price: 1299.0,
     image: "/images/brazalete.jpg",
     description: "Monitoreo continuo inteligente",
   },
