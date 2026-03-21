@@ -4,9 +4,9 @@ import type { Product as ShopifyProduct } from "lib/shopify/types";
 
 export default function ProductGrid() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white dark:bg-blue-950">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-10 text-emerald-900">
+        <h2 className="text-3xl font-bold text-center mb-10 text-blue-900 dark:text-blue-100">
           Catálogo de Productos
         </h2>
 
@@ -15,7 +15,7 @@ export default function ProductGrid() {
           {categories.map((category) => (
             <button
               key={category.id}
-              className="px-6 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-full transition-colors"
+              className="px-6 py-2 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-900 dark:text-blue-100 rounded-full transition-colors"
             >
               {category.name}
             </button>
@@ -27,9 +27,9 @@ export default function ProductGrid() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+              className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white dark:bg-blue-900"
             >
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
+              <div className="h-48 bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                 <img
                   src={product.image}
                   alt={product.title}
@@ -37,17 +37,17 @@ export default function ProductGrid() {
                 />
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2 line-clamp-2">
                   {product.title}
                 </h3>
-                <p className="text-emerald-700 font-bold mb-2">
+                <p className="text-blue-700 dark:text-blue-300 font-bold mb-2">
                   ${product.price.toFixed(2)}
                 </p>
-                <p className="text-xs text-gray-600 line-clamp-2 mb-3">
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
                   {product.description}
                 </p>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-emerald-600 font-medium">
+                  <span className="text-blue-600 dark:text-blue-400 font-medium">
                     Stock: {product.stock}
                   </span>
                   <div className="flex-1 ml-4">
