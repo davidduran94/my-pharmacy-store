@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import MobileMenu from "./mobile-menu";
 import Search, { SearchSkeleton } from "./search";
+import { ThemeToggle } from "components/theme-toggle";
 
 const { SITE_NAME } = process.env;
 
@@ -52,8 +53,9 @@ export async function Navbar() {
             <Search />
           </Suspense>
         </div>
-        <div className="flex justify-end md:w-1/3">
+        <div className="flex justify-end items-center md:w-1/3">
           <CartModal />
+          <ThemeToggle />
         </div>
       </div>
     </nav>

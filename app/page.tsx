@@ -18,12 +18,12 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-      <section className="bg-gradient-to-b from-emerald-50 to-white py-12">
+      <section className="bg-gradient-to-b from-blue-50 to-white dark:from-blue-900 dark:to-blue-950 py-12">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-emerald-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 dark:text-white mb-6">
             Controla tu Diabetes con Confianza
           </h1>
-          <p className="text-lg md:text-xl text-emerald-700 max-w-2xl mx-auto mb-8">
+          <p className="text-lg md:text-xl text-blue-700 dark:text-blue-200 max-w-2xl mx-auto mb-8">
             Tu tienda especializada en productos para el control de la diabetes.
             Monitores de glucosa, insulina, tirillas reactivas y más.
           </p>
